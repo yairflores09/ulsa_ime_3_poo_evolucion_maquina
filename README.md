@@ -59,15 +59,15 @@ La llamada directa ejecuta el método del torno y suma 45 segundos. Los dos cicl
 
 a) ¿Qué regla de la sección 1.2 rompió `torno.piezasProcesadas = -5;`?
 
-[Inserta aquí tu respuesta]
+Rompió la regla de que la cantidad de piezas procesadas nunca debe ser negativa. Como el atributo era público, se podía modificar directamente sin ninguna validación.
 
 b) ¿De dónde salió la máquina "Fantasma"? ¿Qué hizo el compilador sin que se lo pidieras?
 
-[Inserta aquí tu respuesta]
+El compilador convirtió automáticamente el objeto std::string llamado codigo en una Maquina temporal, utilizando el constructor de un solo parámetro. Al agregar explicit al constructor, esa conversión implícita deja de estar permitida.
 
 c) ¿Qué tuviste que cambiar en `Torno` y `Fresadora` y por qué?
 
-[Inserta aquí tu respuesta]
+Tuve que reemplazar el acceso directo a los atributos por getNombre(), registrarPieza() y agregarTiempo(), porque los atributos de Maquina ahora son privados. También declaré sus constructores como explicit. Así las derivadas utilizan los métodos de la base para consultar y actualizar los datos respetando las reglas.
 
 **3.2 Etapa 2. Virtual y override**
 
