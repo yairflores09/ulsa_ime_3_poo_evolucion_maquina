@@ -8,17 +8,18 @@ Llena cada espacio conforme avances en las fases de [PRACTICA.md](PRACTICA.md).
 
 **1.1 El problema con mis propias palabras**
 
-[Inserta aquí tu respuesta]
+Una planta necesita controlar varias máquinas que procesan piezas, como tornos y fresadoras. El programa debe llevar el registro de cuántas piezas procesa cada máquina, cuánto tiempo trabaja y cuál es su capacidad por hora. Durante la práctica vamos a mejorar el diseño para evitar datos incorrectos y permitir que otros equipos agreguen máquinas nuevas.
 
-**1.2 Reglas que siempre deben cumplirse en una máquina** (escribe al menos tres)
+**1.2 Reglas que siempre deben cumplirse en una máquina**
 
-1. _____
-2. _____
-3. _____
+1. El nombre de la máquina no debe estar vacío.
+2. La cantidad de piezas procesadas y el tiempo trabajado nunca deben ser negativos.
+3. El tiempo que dura un ciclo siempre debe ser mayor que cero.
+4. Cada ciclo completado debe registrar una pieza y sumar el tiempo correspondiente.
 
 **1.3 ¿Quién más usa la clase `Maquina`? ¿Qué podría salir mal si otro equipo crea una máquina nueva sin conocer tus reglas?**
 
-[Inserta aquí tu respuesta]
+La utilizan los equipos que desarrollan máquinas nuevas y el programa que controla la línea de producción. Si un equipo no conoce las reglas, podría crear una máquina que no registre sus piezas, acumule tiempos incorrectos o tenga un tiempo de ciclo igual a cero. Esto provocaría reportes incorrectos de la producción.
 
 ## Fase 2. Diseñar la solución
 
