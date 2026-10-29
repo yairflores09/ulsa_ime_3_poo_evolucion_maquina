@@ -50,12 +50,11 @@ La utilizan los equipos que desarrollan máquinas nuevas y el programa que contr
 
 a) ¿Qué imprime `ejecutarTurno()` para el torno y la fresadora? ¿Por qué no imprime "torneando" ni "fresando"?
 
-[Inserta aquí tu respuesta]
+Imprime "procesamiento generico" para ambas máquinas. La función recibe una referencia de tipo Maquina y procesar() no es virtual. Por eso se utiliza el método de Maquina según el tipo declarado de la referencia. Esto se llama enlace estático.
 
 b) ¿Por qué el torno acumula 65 s y no 135 s?
 
-[Inserta aquí tu respuesta]
-
+La llamada directa ejecuta el método del torno y suma 45 segundos. Los dos ciclos dentro de ejecutarTurno() ejecutan el método de Maquina, que suma 10 segundos por ciclo. Por eso acumula 45 + 10 + 10 = 65 segundos.
 **3.1 Etapa 1. Invariantes y constructores explicit**
 
 a) ¿Qué regla de la sección 1.2 rompió `torno.piezasProcesadas = -5;`?
