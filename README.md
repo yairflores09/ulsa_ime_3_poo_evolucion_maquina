@@ -69,15 +69,17 @@ c) ¿Qué tuviste que cambiar en `Torno` y `Fresadora` y por qué?
 
 Tuve que reemplazar el acceso directo a los atributos por getNombre(), registrarPieza() y agregarTiempo(), porque los atributos de Maquina ahora son privados. También declaré sus constructores como explicit. Así las derivadas utilizan los métodos de la base para consultar y actualizar los datos respetando las reglas.
 
-**3.2 Etapa 2. Virtual y override**
+**3.2 Etapa 2. Métodos virtuales y override**
 
-a) La fresadora acumula 180 s, pero reporta 360 pzas/h. ¿Por qué un cálculo usó 60 s y el otro 10 s?
+a) ¿Por qué la fresadora acumula 180 s, pero reporta 360 pzas/h en el experimento?
 
-[Inserta aquí tu respuesta]
+Al procesar, la fresadora usa su propia función `tiempoCicloSeg()`, que devuelve 60 segundos. Por eso, al procesar tres piezas acumula 180 segundos. Pero como esa función no tenía `const`, su firma era distinta a la de `Maquina::tiempoCicloSeg() const`. Al calcular la capacidad se usaba la versión de `Maquina`, que devuelve 10 segundos, y el resultado era `3600 / 10 = 360 pzas/h`.
 
-b) ¿Tu compilador mostró alguna advertencia antes de usar `override`? ¿Qué mensaje dio después de agregar `override`?
+b) ¿Qué advertencia apareció antes de usar `override` y qué pasó al agregarlo?
 
-[Inserta aquí tu respuesta]
+Compilé directamente la versión corregida, así que no registré si apareció alguna advertencia en la versión inicial. Si se agrega `override` a la función de Fresadora sin el `const`, el compilador marca `marked 'override', but does not override` porque la firma no coincide con la de la clase base.
+
+Al usar `const` en la declaración y en la implementación de `Fresadora::tiempoCicloSeg()`, la función sí sobrescribe la de `Maquina`. En la ejecución final, el torno dio 3 piezas, 135 s y 80 pzas/h. La fresadora dio 3 piezas, 180 s y 60 pzas/h.
 
 **3.3 Etapa 3. La línea de producción**
 
