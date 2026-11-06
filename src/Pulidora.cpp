@@ -3,10 +3,8 @@
 
 Pulidora::Pulidora(const std::string& nombre) : Maquina(nombre) {}
 
-void Pulidora::procesar() {
+void Pulidora::ejecutarCiclo() {
     std::cout << getNombre() << ": puliendo pieza\n";
-    registrarPieza();
-    agregarTiempo(tiempoCicloSeg());
 }
 
 int Pulidora::tiempoCicloSeg() const {
