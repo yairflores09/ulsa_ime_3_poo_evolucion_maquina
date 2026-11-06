@@ -3,6 +3,8 @@
 #include <iostream>
 #include <stdexcept>
 
+namespace planta {
+
 Maquina::Maquina(const std::string& nombre)
     : nombre(nombre), piezasProcesadas(0), tiempoTrabajadoSeg(0) {
     if (nombre.empty()) {
@@ -63,3 +65,4 @@ void Maquina::mostrarEstado() const {
               << " s | capacidad: " << capacidadPorHora()
               << " pzas/h\n";
 }
+} // namespace planta

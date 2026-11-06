@@ -3,6 +3,8 @@
 
 #include <string>
 
+namespace planta {
+
 class Maquina {
 private:
     std::string nombre;
@@ -31,5 +33,7 @@ public:
     int getTiempoTrabajadoSeg() const;
     void mostrarEstado() const;
 };
+
+} // namespace planta
 
 #endif
