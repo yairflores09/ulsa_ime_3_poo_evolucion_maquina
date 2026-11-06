@@ -1,3 +1,4 @@
+#include "BandaTransportadora.h"
 #include "ControlDeLinea.h"
 #include "Fresadora.h"
 #include "InspeccionVisual.h"
@@ -13,12 +14,14 @@ int main() {
         Fresadora fresadora("Fresadora F-01");
         Pulidora pulidora("Pulidora P-01");
         InspeccionVisual inspeccion("Inspeccion I-01");
+        BandaTransportadora banda("Banda B-01");
 
         ControlDeLinea linea;
         linea.agregar(&torno);
         linea.agregar(&fresadora);
         linea.agregar(&pulidora);
         linea.agregar(&inspeccion);
+        linea.agregar(&banda);
 
         linea.ejecutarTurno(2);
         linea.imprimirReporte();
