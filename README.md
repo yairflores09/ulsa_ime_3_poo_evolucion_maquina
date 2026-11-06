@@ -35,14 +35,14 @@ La utilizan los equipos que desarrollan máquinas nuevas y el programa que contr
 
 | Elemento | Etapa 0 | Etapa 9 | Etapa que lo cambió |
 | --- | --- | --- | --- |
-| Visibilidad de los atributos de `Maquina` | _____ | _____ | _____ |
-| `procesar()` | _____ | _____ | _____ |
-| `tiempoCicloSeg()` | _____ | _____ | _____ |
-| Destructor de `Maquina` | _____ | _____ | _____ |
-| ¿Se pueden crear objetos `Maquina`? | _____ | _____ | _____ |
-| Relación `ControlDeLinea` - `Maquina` | _____ | _____ | _____ |
-| Relación `Torno` - `Motor` | _____ | _____ | _____ |
-| Relación `BandaTransportadora` - `Motor` | _____ | _____ | _____ |
+| Visibilidad de los atributos de `Maquina` | Públicos | Privados | 1 |
+| `procesar()` | Público, no virtual y con procesamiento genérico | Público, no virtual y controla las reglas del ciclo mediante `ejecutarCiclo()` | 2, 5 y 7 |
+| `tiempoCicloSeg()` | No existía | Público, const y virtual puro | 2 y 5 |
+| Destructor de `Maquina` | Implícito, no virtual | `virtual ~Maquina() = default;` | 4 |
+| ¿Se pueden crear objetos `Maquina`? | Sí | No, es abstracta | 5 |
+| Relación `ControlDeLinea` - `Maquina` | No existía | Agregación mediante punteros | 3 |
+| Relación `Torno` - `Motor` | No existía | Composición mediante el husillo | 4 |
+| Relación `BandaTransportadora` - `Motor` | No existía | Composición mediante un motor privado | 8 |
 
 ## Fase 3. Implementar
 
@@ -83,154 +83,150 @@ Al usar `const` en la declaración y en la implementación de `Fresadora::tiempo
 
 **3.3 Etapa 3. La línea de producción**
 
-a) ¿Por qué la línea procesó todo como "generico" si `procesar()` ya es virtual?
+a) En la versión que guarda objetos por valor, `std::vector<Maquina>` copia solo la parte de `Maquina`. Esto se llama slicing. Como las copias son objetos `Maquina`, su método virtual ejecuta el procesamiento genérico.
 
-[Inserta aquí tu respuesta]
+b) Los originales quedan con cero piezas porque el turno modifica las copias del vector. Al guardar punteros, el turno trabaja con los objetos originales.
 
-b) ¿Por qué el torno y la fresadora originales quedaron con 0 piezas?
+c) Es agregación porque `ControlDeLinea` guarda las direcciones de máquinas que existen por su cuenta. La línea no las crea ni las destruye.
 
-[Inserta aquí tu respuesta]
+***3.4 Etapa 4. Destructores**
 
-c) La relación entre `ControlDeLinea` y `Maquina`, ¿es composición o agregación? ¿Por qué?
+Resultados esperados del experimento de la guía:
 
-[Inserta aquí tu respuesta]
-
-**3.4 Etapa 4. Destructores**
-
-| Momento | Mensajes de destrucción que aparecieron |
+| Momento | Mensajes esperados |
 | --- | --- |
-| `delete temporal;` sin destructor virtual | _____ |
-| `delete temporal;` con destructor virtual | _____ |
-| Al terminar `main` (torno y fresadora) | _____ |
+| `delete temporal` sin destructor virtual | La guía muestra solo `Destruyendo Maquina`. Es comportamiento indefinido, así que la salida no está garantizada. |
+| `delete temporal` con destructor virtual | `Destruyendo Torno`, `Destruyendo Motor`, `Destruyendo Maquina`. |
+| Al terminar `main` | Primero `Destruyendo Maquina` por la fresadora. Luego `Destruyendo Torno`, `Destruyendo Motor` y `Destruyendo Maquina` por el torno. |
 
-a) ¿Qué advertencia mostró el compilador? ¿Por qué decimos que ya te estaba avisando del problema?
+a) La advertencia esperada es `-Wdelete-non-virtual-dtor`. Avisa que borrar un objeto derivado con un puntero a la base puede causar comportamiento indefinido si el destructor de la base no es virtual.
 
-[Inserta aquí tu respuesta]
-
-b) ¿Por qué el torno de `main` sí se destruyó completo aunque el destructor no fuera virtual? ¿A qué máquina corresponde el primer "Destruyendo Maquina" después de "Fin de main"?
-
-[Inserta aquí tu respuesta]
+b) El torno local se destruye completo porque fue declarado como `Torno`. Los objetos locales se destruyen en orden inverso a su creación, por eso el primer `Destruyendo Maquina` corresponde a la fresadora.
 
 **3.5 Etapa 5. La clase abstracta**
 
-a) Copia los mensajes de error y explica con tus palabras qué dice cada uno.
+a) Los mensajes esperados del experimento son:
 
-[Inserta aquí tu respuesta]
+- `cannot declare variable 'pulidora' to be of abstract type 'Pulidora'`. A la primera versión de `Pulidora` le faltaba implementar `procesar()`.
+- `cannot declare variable 'generica' to be of abstract type 'Maquina'`. `Maquina` es abstracta porque declara `procesar()` y `tiempoCicloSeg()` como métodos virtuales puros.
 
-b) ¿Por qué es mejor este error de compilación que el comportamiento "generico" de antes?
-
-[Inserta aquí tu respuesta]
+b) El error de compilación detecta una máquina incompleta antes de ejecutar el programa. Así la línea no puede reportar producción de una máquina genérica ni aceptar una pulidora que no define cómo procesar una pieza.
 
 **3.6 Etapa 6. El contrato que el compilador no ve**
 
 a) ¿Qué partes del contrato violó `InspeccionVisual`?
 
-[Inserta aquí tu respuesta]
+En el código incorrecto de la guía, no registraba la pieza ni sumaba el tiempo trabajado. Además, devolvía cero como tiempo de ciclo, aunque el contrato exige un valor mayor que cero. La versión corregida registra cada pieza y utiliza un ciclo de 15 segundos.
 
 b) ¿Por qué el compilador no lo detectó?
 
-[Inserta aquí tu respuesta]
+Porque los métodos tenían los nombres, parámetros y tipos correctos. El compilador verifica esas declaraciones, pero no interpreta los comentarios ni comprueba que cada método cumpla las reglas de producción.
 
 c) ¿Qué pasaría si el próximo equipo tampoco lee el comentario del contrato?
 
-[Inserta aquí tu respuesta]
+Podría repetir el problema y producir reportes incorrectos. Por eso conviene que la clase base controle el registro de piezas, el tiempo y sus validaciones, como se hará en la siguiente etapa.
 
 **3.7 Etapa 7. La base hace cumplir el contrato**
 
-a) ¿Cómo puede una clase derivada sobrescribir un método que es privado en la base?
+a) ¿Cómo puede una clase derivada sobrescribir un método privado de la base?
 
-[Inserta aquí tu respuesta]
+El acceso y la sobrescritura son independientes. `private` controla quién puede llamar al método y `virtual` permite que una derivada implemente su propia versión. La base puede llamar a `ejecutarCiclo()` y ejecutar la versión de la máquina correspondiente.
 
-b) ¿Qué ocurre ahora con una máquina cuyo tiempo de ciclo es 0? Compáralo con la Etapa 6.
+b) ¿Qué ocurre ahora con un tiempo de ciclo igual a cero?
 
-[Inserta aquí tu respuesta]
+La base lanza `std::logic_error` antes de ejecutar el ciclo y registrar la pieza. En la Etapa 6, el código incorrecto podía calcular una capacidad infinita. Ahora la validación detecta el tiempo inválido y señala qué máquina falló.
 
-c) ¿Por qué la línea ignoró el "atajo" del torno, pero la llamada directa no? ¿Cómo corregiste el diseño?
+c) ¿Por qué la línea ignora el atajo del torno y cómo se corrige?
 
-[Inserta aquí tu respuesta]
+La línea utiliza punteros `Maquina*`. Como `procesar()` no es virtual, llama al método de la base, que aplica las reglas. Un `procesar()` propio de Torno ocultaría ese método en las llamadas directas y podría saltarse el registro. La corrección consiste en eliminar el atajo y personalizar únicamente `ejecutarCiclo()`.
 
 **3.8 Etapa 8. Herencia mal usada**
 
 a) Da al menos dos razones por las que `BandaTransportadora : public Motor` es un error de diseño.
 
-[Inserta aquí tu respuesta]
+Una banda tiene un motor, pero no es un motor. Al heredar únicamente de Motor, no puede agregarse a ControlDeLinea porque la línea recibe punteros Maquina*. Además, expone fijarVelocidad() al resto del programa y permite cambiar directamente la velocidad del motor desde fuera de la banda.
 
-b) La relación entre `BandaTransportadora` y `Motor`, ¿es composición o agregación? ¿Por qué?
+La solución es heredar de Maquina y guardar un Motor como atributo privado. Así la banda participa en la línea y controla internamente su motor.
 
-[Inserta aquí tu respuesta]
+b) ¿La relación entre BandaTransportadora y Motor es composición o agregación?
+
+Es composición porque el motor forma parte de la banda como atributo por valor. Se construye junto con ella y se destruye automáticamente cuando se destruye la banda.
 
 **3.9 Etapa 9. La librería y la prueba final**
 
-a) Después de agregar la `Cortadora`, ¿qué archivos mostró `git status`? ¿Cuántos archivos de la librería tuviste que modificar?
+a) Después de agregar la Cortadora, ¿qué archivos mostró `git status`? ¿Cuántos archivos de la librería tuviste que modificar?
 
-[Inserta aquí tu respuesta]
+Los cambios de código fueron `src/main.cpp`, `Include/Cortadora.h` y `src/Cortadora.cpp`. No tuve que modificar ningún archivo de las clases existentes ni recompilar la librería para integrar la cortadora. La compilé por separado y la enlacé con `libplanta.a`.
 
 b) ¿Qué pasó al escribir `-lplanta` antes de `src/main.cpp`? ¿Por qué?
 
-[Inserta aquí tu respuesta]
+Aparecieron errores `undefined reference`. El enlazador procesa los argumentos en orden y utiliza la librería estática para resolver las referencias que ya tiene pendientes. Por eso la librería debe ir después del código que la utiliza.
 
 **3.10 Bitácora de dudas**
 
 | # | Etapa | Duda | Cómo la resolví | Fuente |
 | --- | --- | --- | --- | --- |
-| 1 | _____ | _____ | _____ | _____ |
-| 2 | _____ | _____ | _____ | _____ |
-| 3 | _____ | _____ | _____ | _____ |
+| 1 | 1 | ¿Por qué aparecía undefined reference a los métodos de Maquina? | Revisé que las funciones declaradas en el encabezado tuvieran su implementación en Maquina.cpp y guardé el archivo. | Mensajes de g++ y apoyo de ChatGPT |
+| 2 | 2 | ¿Por qué aparecían funciones duplicadas y faltaba main? | Corregí main.cpp, donde se había pegado código de Maquina.cpp. | Mensajes del enlazador y apoyo de ChatGPT |
+| 3 | 3 y 4 | ¿Por qué no encontraba ControlDeLinea.h y Motor.h? | Revisé las rutas con PowerShell y moví los archivos de Include/include a Include. | PowerShell, mensajes de g++ y apoyo de ChatGPT |
+| 4 | 7 | ¿Cómo se puede sobrescribir un método privado? | Revisé que private controla el acceso y virtual permite ejecutar la implementación de la derivada. | PRACTICA.md y apoyo de ChatGPT |
 
 ## Fase 4. Probar y mejorar
 
 **4.1 Tabla de pruebas**
 
+Las nueve pruebas se ejecutaron mediante un programa temporal. El resultado fue 9/9 aprobadas.
+
 | # | Caso | Resultado esperado | Resultado obtenido | ¿Pasa? |
 | --- | --- | --- | --- | --- |
-| 1 | Máquina con nombre vacío | Excepción con mensaje claro | _____ | _____ |
-| 2 | Reporte de una línea vacía | "La linea no tiene maquinas" | _____ | _____ |
-| 3 | `agregar(nullptr)` | Devuelve `false` | _____ | _____ |
-| 4 | Reporte antes de ejecutar el turno | 0 piezas, 0 s y capacidad calculada | _____ | _____ |
-| 5 | Turno de 0 ciclos | Nada cambia | _____ | _____ |
-| 6 | Torno con 3 ciclos | 3 piezas, 135 s, 80 pzas/h | _____ | _____ |
-| 7 | Máquina con `tiempoCicloSeg()` igual a 0 | Excepción con mensaje claro | _____ | _____ |
-| 8 | Máquina con `tiempoCicloSeg()` negativo | Excepción con mensaje claro | _____ | _____ |
-| 9 | La misma máquina agregada dos veces | _____ | _____ | _____ |
+| 1 | Máquina con nombre vacío | Excepción con mensaje claro | Se lanzó invalid_argument con el mensaje "El nombre no puede estar vacio". | Sí |
+| 2 | Reporte de una línea vacía | "La linea no tiene maquinas" | Se mostró el mensaje esperado. | Sí |
+| 3 | `agregar(nullptr)` | Devuelve false | El puntero fue rechazado y devolvió false. | Sí |
+| 4 | Reporte antes de ejecutar el turno | 0 piezas, 0 s y capacidad calculada | El torno reportó 0 piezas, 0 s y 80 pzas/h. | Sí |
+| 5 | Turno de 0 ciclos | Nada cambia | El torno mantuvo 0 piezas y 0 s. | Sí |
+| 6 | Torno con 3 ciclos | 3 piezas, 135 s y 80 pzas/h | Se obtuvieron los tres valores esperados. | Sí |
+| 7 | Tiempo de ciclo igual a 0 | Excepción con mensaje claro | procesar() y capacidadPorHora() lanzaron logic_error. Los contadores permanecieron en cero. | Sí |
+| 8 | Tiempo de ciclo negativo | Excepción con mensaje claro | Con -5 segundos, procesar() y capacidadPorHora() lanzaron logic_error. Los contadores permanecieron en cero. | Sí |
+| 9 | La misma máquina agregada dos veces | Rechazar la segunda incorporación | La primera incorporación devolvió true y la segunda false. Un turno de un ciclo produjo una sola pieza y 45 s. | Sí |
 
 **4.2 Bitácora de mejoras**
 
 | # | Falla o mejora detectada | Qué cambié | Por qué |
 | --- | --- | --- | --- |
-| 1 | _____ | _____ | _____ |
-| 2 | _____ | _____ | _____ |
+| 1 | Una máquina podía incorporarse dos veces a la misma línea. | Agregué una búsqueda del puntero antes de insertarlo en ControlDeLinea. | Para evitar ciclos repetidos y un reporte que contabilice dos veces la misma máquina. |
+| 2 | Las derivadas podían olvidar registrar las piezas o informar un tiempo inválido. | Centralicé la validación y el registro en Maquina::procesar(). | Para que todas las máquinas sigan las mismas reglas. |
 
-Retos opcionales que intenté: _____
+Retos opcionales que intenté: rechazar una máquina que ya está registrada en la línea.
 
 ## Fase 5. Publicar en GitHub
 
 **5.1 Enlace a mi fork**
 
-[Inserta aquí el enlace a tu fork]
+https://github.com/yairflores09/ulsa_ime_3_poo_evolucion_maquina
 
 ## Cierre y reflexión
 
 **6.1 Errores que ya no pueden ocurrir**
 
-| Error | Etapa en que apareció | Restricción que lo impide ahora | ¿Quién lo detecta: el compilador o el programa? |
+| Error | Etapa en que apareció | Restricción que lo impide ahora | ¿Quién lo detecta? |
 | --- | --- | --- | --- |
-| Contadores con valores inválidos | _____ | _____ | _____ |
-| Máquina "fantasma" creada a escondidas | _____ | _____ | _____ |
-| Método que no sobrescribe por un `const` | _____ | _____ | _____ |
-| Máquinas copiadas y "rebanadas" | _____ | _____ | _____ |
-| Destrucción incompleta | _____ | _____ | _____ |
-| Máquina sin `procesar()` propio | _____ | _____ | _____ |
-| Tiempo de ciclo inválido | _____ | _____ | _____ |
-| Derivada que no registra sus piezas | _____ | _____ | _____ |
+| Contadores con valores inválidos por modificación directa | 1 | Atributos privados y actualización mediante métodos controlados | El compilador impide el acceso directo y el programa valida los tiempos |
+| Máquina "fantasma" creada a escondidas | 1 | Constructor explicit | El compilador |
+| Método que no sobrescribe por un const | 2 | override exige que la firma coincida | El compilador |
+| Máquinas copiadas y "rebanadas" | 3 | La línea guarda Maquina* y Maquina es abstracta | El diseño evita las copias y el compilador impide crear objetos Maquina |
+| Destrucción incompleta mediante un puntero a la base | 4 | Destructor virtual | El lenguaje garantiza la destrucción correspondiente al tipo real |
+| Máquina sin comportamiento propio | 5 | Métodos virtuales puros. En el diseño final cada derivada implementa ejecutarCiclo() | El compilador |
+| Tiempo de ciclo inválido | 6 | tiempoCicloValidado() comprueba que sea mayor que cero | El programa |
+| Derivada que no registra sus piezas | 6 | La base registra las piezas al procesar mediante su interfaz | El diseño de Maquina::procesar() |
 
-**6.2 ¿Cuál de los errores fue el más peligroso: el de compilación, la advertencia o el que compilaba sin problemas? ¿Por qué?**
+**6.2 ¿Cuál de los errores fue el más peligroso y por qué?**
 
-[Inserta aquí tu respuesta]
+El más peligroso fue el que compilaba sin problemas, porque parecía que todo estaba bien, pero el reporte podía tener datos incorrectos. Por ejemplo, una máquina podía ejecutar su trabajo sin registrar piezas o informar una capacidad incorrecta. Un error de compilación es más fácil de detectar porque detiene la construcción del programa.
 
 **6.3 ¿Qué aprendiste en esta práctica?**
 
-[Inserta aquí tu respuesta]
+Aprendí a separar las declaraciones de las implementaciones, usar herencia y proteger los datos de una clase. Entendí que virtual permite ejecutar el comportamiento de la máquina correcta y que override ayuda a detectar diferencias en las firmas. También aprendí a distinguir composición y agregación, crear una clase abstracta y reutilizar las clases mediante una librería.
 
 **6.4 ¿Qué cambiarías de tu proceso la próxima vez?**
 
-[Inserta aquí tu respuesta]
+Revisaría desde el principio los nombres y las ubicaciones de los archivos. También guardaría y compilaría después de cada cambio pequeño para detectar rápido los errores. Mantendría los commits por etapa y distinguiría los resultados observados de los resultados esperados de la guía.

@@ -1,10 +1,17 @@
 #include "ControlDeLinea.h"
+
+#include <algorithm>
 #include <iostream>
 
 namespace planta {
 
 bool ControlDeLinea::agregar(Maquina* maquina) {
     if (maquina == nullptr) {
+        return false;
+    }
+
+    if (std::find(maquinas.begin(), maquinas.end(), maquina)
+        != maquinas.end()) {
         return false;
     }
 
@@ -36,4 +43,5 @@ void ControlDeLinea::imprimirReporte() const {
 
     std::cout << "Total de piezas: " << totalPiezas << '\n';
 }
+
 } // namespace planta
